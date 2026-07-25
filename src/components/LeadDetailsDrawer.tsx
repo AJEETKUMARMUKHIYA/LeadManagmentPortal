@@ -1,0 +1,263 @@
+import React, { useState } from 'react';
+import { 
+  X, Phone, Mail, MapPin, Calendar, Clock, Sparkles, Send, 
+  MessageSquare, Plus, Calculator, Check, Flame, Shield, ArrowRight, Tag
+} from 'lucide-react';
+import { Lead, LeadStatus, FollowUpNote } from '../types';
+
+interface LeadDetailsDrawerProps {
+  lead: Lead | null;
+  onClose: () => void;
+  onUpdateStatus: (leadId: string, status: LeadStatus) => void;
+  onAddFollowUpNote: (leadId: string, noteText: string) => void;
+  onOpenCampaignModal: (lead: Lead) => void;
+}
+
+export const LeadDetailsDrawer: React.FC<LeadDetailsDrawerProps> = ({
+  lead,
+  onClose,
+  onUpdateStatus,
+  onAddFollowUpNote,
+  onOpenCampaignModal
+}) => {
+  const [newNote, setNewNote] = useState('');
+  const [calculatedQuote, setCalculatedQuote] = useState<{
+    min: number;
+    max: number;
+    breakdown: any;
+  } | null>(null);
+  const [isCalculatingQuote, setIsCalculatingQuote] = useState(false);
+
+  if (!lead) return null;
+
+  const handleAddNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNote.trim()) return;
+    onAddFollowUpNote(lead.id, newNote);
+    setNewNote('');
+  };
+
+  const handleCalculateQuote = async () => {
+    setIsCalculatingQuote(true);
+    try {
+      const response = await fetch('/api/calculate-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyType: lead.propertyType,
+          serviceType: lead.serviceType,
+          packingQuality: 'Premium / Multi-layer'
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCalculatedQuote({
+          min: data.estimatedPriceMin,
+          max: data.estimatedPriceMax,
+          breakdown: data.breakdown
+        });
+      }
+    } catch (err) {
+      console.error('Quote calculation error:', err);
+    } finally {
+      setIsCalculatingQuote(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex justify-end">
+      <div className="bg-[#141414] border-l border-white/10 w-full max-w-xl h-full shadow-2xl overflow-y-auto text-slate-100 flex flex-col">
+        
+        {/* Drawer Header */}
+        <div className="bg-[#141414] px-6 py-4 border-b border-white/5 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center space-x-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+            <div>
+              <h2 className="text-base font-semibold text-white">{lead.customerName}</h2>
+              <p className="text-xs text-slate-400 font-mono">ID: {lead.id} • {lead.source}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Drawer Body */}
+        <div className="p-6 space-y-6 flex-1">
+          
+          {/* Quick Actions & Status */}
+          <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/5 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Pipeline Status</span>
+              <select
+                value={lead.status}
+                onChange={(e) => onUpdateStatus(lead.id, e.target.value as LeadStatus)}
+                className="bg-[#141414] text-blue-400 font-medium text-xs rounded-lg px-3 py-1.5 border border-white/10 mt-1 focus:border-blue-500"
+              >
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Quote Sent">Quote Sent</option>
+                <option value="Won / Booked">Won / Booked</option>
+                <option value="Lost">Lost</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => onOpenCampaignModal(lead)}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-medium px-3.5 py-2 rounded-lg text-xs flex items-center space-x-1.5 shadow-md transition-all border border-blue-400/20"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Send AI Marketing Copy</span>
+            </button>
+          </div>
+
+          {/* Original Chrome Search Intent */}
+          <div className="space-y-2">
+            <h3 className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center">
+              <span>Google Search Inquiry Intent</span>
+            </h3>
+            <div className="bg-[#0A0A0A] p-3.5 rounded-xl border border-white/5 space-y-2">
+              <p className="text-xs text-blue-400 italic font-mono bg-[#141414] p-2.5 rounded-lg border border-white/5">
+                "{lead.fullSearchQuery || 'Search Inquiry'}"
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {(lead.searchKeywords || []).map((kw, i) => (
+                  <span key={i} className="text-[10px] bg-blue-500/10 text-blue-400 font-medium px-2 py-0.5 rounded-md border border-blue-500/20">
+                    #{kw}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-slate-300 pt-1">
+                <strong className="text-slate-500">AI Notes:</strong> {lead.extractedNotes}
+              </p>
+            </div>
+          </div>
+
+          {/* Moving Requirements */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5">
+              <span className="text-[10px] text-slate-500 uppercase block font-medium">Service Type</span>
+              <span className="font-semibold text-white text-sm mt-0.5 block">{lead.serviceType}</span>
+              <span className="text-slate-400 text-[11px] block">{lead.propertyType}</span>
+            </div>
+
+            <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5">
+              <span className="text-[10px] text-slate-500 uppercase block font-medium">Est. Budget</span>
+              <span className="font-semibold text-emerald-400 text-sm mt-0.5 block font-mono">₹{lead.estimatedBudget.toLocaleString()}</span>
+              <span className="text-slate-400 text-[11px] block font-mono">Move Date: {lead.moveDate || 'Flexible'}</span>
+            </div>
+
+            <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 col-span-2">
+              <span className="text-[10px] text-slate-500 uppercase block font-medium">Relocation Route</span>
+              <div className="flex items-center space-x-2 mt-1">
+                <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
+                <span className="font-medium text-slate-200 text-xs">{lead.originCity}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
+                <span className="font-medium text-slate-200 text-xs">{lead.destinationCity}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Details */}
+          <div className="space-y-2">
+            <h3 className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Contact Information</h3>
+            <div className="bg-[#0A0A0A] p-3.5 rounded-xl border border-white/5 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400 flex items-center"><Phone className="w-3.5 h-3.5 mr-2 text-blue-400" />Phone</span>
+                <span className="font-mono text-blue-400 font-medium">{lead.phone}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                <span className="text-slate-400 flex items-center"><Mail className="w-3.5 h-3.5 mr-2 text-blue-400" />Email</span>
+                <span className="text-slate-300 font-mono text-[11px]">{lead.email}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Instant Cost Estimator Widget */}
+          <div className="bg-[#0A0A0A] p-4 rounded-xl border border-blue-500/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Calculator className="w-4 h-4 text-blue-400" />
+                <span className="text-xs font-semibold text-white">Instant AI Quote Calculator</span>
+              </div>
+              <button
+                onClick={handleCalculateQuote}
+                disabled={isCalculatingQuote}
+                className="bg-blue-600 text-white text-[11px] font-medium px-3 py-1 rounded-lg hover:bg-blue-500 transition-colors shadow-sm"
+              >
+                {isCalculatingQuote ? 'Calculating...' : 'Generate Quote'}
+              </button>
+            </div>
+
+            {calculatedQuote && (
+              <div className="space-y-2 bg-[#141414] p-3 rounded-lg border border-white/5 text-xs animate-fadeIn font-mono">
+                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                  <span className="text-slate-400 font-sans">Estimated Price Range</span>
+                  <span className="font-bold text-emerald-400 text-sm">
+                    ₹{calculatedQuote.min.toLocaleString()} - ₹{calculatedQuote.max.toLocaleString()}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400">
+                  <div>Packing: ₹{calculatedQuote.breakdown.packingCharges}</div>
+                  <div>Loading/Unloading: ₹{calculatedQuote.breakdown.loadingUnloading}</div>
+                  <div>Transport: ₹{calculatedQuote.breakdown.transportationCost}</div>
+                  <div>Insurance/GST: ₹{calculatedQuote.breakdown.insuranceAndTaxes}</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Follow-up Notes & Activity Log */}
+          <div className="space-y-3">
+            <h3 className="text-[10px] uppercase tracking-widest text-slate-500 font-bold flex items-center justify-between">
+              <span>Follow-up History & Sales Notes</span>
+              <span className="text-[10px] text-slate-500 font-mono">{(lead.followUps || []).length} entries</span>
+            </h3>
+
+            {/* Add Note Form */}
+            <form onSubmit={handleAddNote} className="flex gap-2">
+              <input
+                type="text"
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                placeholder="Log follow-up call, customer response or quote details..."
+                className="flex-1 bg-[#0A0A0A] border border-white/10 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500"
+              />
+              <button
+                type="submit"
+                className="bg-blue-600 text-white font-medium px-3 py-2 rounded-xl text-xs flex items-center space-x-1 hover:bg-blue-500 shrink-0 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Log Note</span>
+              </button>
+            </form>
+
+            {/* Notes List */}
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {(!lead.followUps || lead.followUps.length === 0) ? (
+                <p className="text-xs text-slate-500 italic p-3 bg-[#0A0A0A] rounded-xl text-center border border-white/5">No notes logged yet.</p>
+              ) : (
+                (lead.followUps || []).map((item) => (
+                  <div key={item.id} className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 text-xs space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                      <span className="font-medium text-blue-400">{item.createdBy}</span>
+                      <span>{item.date}</span>
+                    </div>
+                    <p className="text-slate-300">{item.note}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+};

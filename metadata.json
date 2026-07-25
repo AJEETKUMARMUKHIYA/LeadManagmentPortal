@@ -1,0 +1,6 @@
+{
+  "name": "Lead Warehouse CRM",
+  "description": "Extract and structure real-time lead data from search inquiries, Google Places, Chrome extension, and live webhooks into Lead Warehouse CRM.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
