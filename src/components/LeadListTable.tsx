@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Search, Filter, MapPin, Calendar, Phone, Mail, Flame, 
+  Search, Filter, MapPin, Calendar, Phone, Mail, Flame, Globe, ExternalLink,
   ChevronRight, MoreVertical, Sparkles, MessageSquare, Plus, Trash2, Tag, CheckCircle2
 } from 'lucide-react';
 import { Lead, LeadStatus, ServiceType, UrgencyLevel } from '../types';
@@ -176,6 +176,7 @@ export const LeadListTable: React.FC<LeadListTableProps> = ({
             <thead className="bg-white/[0.02] text-slate-500 uppercase text-[10px] tracking-wider border-b border-white/5 font-bold">
               <tr>
                 <th className="py-4 px-6">Business / Customer</th>
+                <th className="py-4 px-6">Lead Source</th>
                 <th className="py-4 px-6">Google Search Query</th>
                 <th className="py-4 px-6">Service & Route</th>
                 <th className="py-4 px-6">Move Date</th>
@@ -187,7 +188,7 @@ export const LeadListTable: React.FC<LeadListTableProps> = ({
             <tbody className="divide-y divide-white/[0.03]">
               {sortedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-16 text-slate-500">
+                  <td colSpan={8} className="text-center py-16 text-slate-500">
                     <div className="max-w-md mx-auto space-y-3">
                       <div className="w-12 h-12 rounded-2xl bg-blue-600/10 text-blue-400 flex items-center justify-center mx-auto border border-blue-500/20">
                         <Sparkles className="w-6 h-6" />
@@ -224,9 +225,35 @@ export const LeadListTable: React.FC<LeadListTableProps> = ({
                         <div className="text-xs text-slate-500 flex items-center space-x-2 mt-0.5 font-mono">
                           <span className="flex items-center text-blue-400/90"><Phone className="w-3 h-3 mr-1 text-slate-600" />{lead.phone}</span>
                         </div>
-                        <span className="inline-block mt-1 text-[9px] bg-white/5 text-slate-400 font-mono px-2 py-0.5 rounded border border-white/5">
-                          {lead.source}
+                      </div>
+                    </td>
+
+                    {/* Dedicated Lead Source Column */}
+                    <td className="py-4 px-6 max-w-xs">
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] bg-blue-500/10 text-blue-300 font-medium px-2.5 py-1 rounded-lg border border-blue-500/20 whitespace-nowrap">
+                          <Globe className="w-3 h-3 text-blue-400 shrink-0" />
+                          {lead.source || 'Direct Search'}
                         </span>
+
+                        {lead.webSources && lead.webSources.length > 0 && (
+                          <div className="flex flex-col gap-0.5 pt-0.5">
+                            {lead.webSources.slice(0, 1).map((src, i) => (
+                              <a
+                                key={i}
+                                href={src.uri}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-blue-300 transition-colors truncate max-w-[160px]"
+                                title={src.title || src.uri}
+                              >
+                                <ExternalLink className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                                <span className="truncate">{src.title || 'Source Link'}</span>
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </td>
 

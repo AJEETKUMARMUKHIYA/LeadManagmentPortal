@@ -57,6 +57,7 @@ export interface Lead {
   fullSearchQuery: string;
   extractedNotes: string;
   createdDate: string;
+  webSources?: Array<{ title: string; uri: string }>;
   followUps: FollowUpNote[];
   campaigns: CampaignMessage[];
 }

@@ -34,12 +34,14 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'places' | 'extension' | 'webhooks'>('places');
 
-  // Live City Search State
+  // Live City & Web Search State
   const [selectedCity, setSelectedCity] = useState<string>('Bangalore');
   const [customCityInput, setCustomCityInput] = useState<string>('');
+  const [sourcePlatform, setSourcePlatform] = useState<string>('Multi-Source Web Crawl (Google, Justdial, IndiaMART, Sulekha)');
   const [queryCategory, setQueryCategory] = useState<string>('Movers & Packers Listings');
   const [isFetchingCity, setIsFetchingCity] = useState<boolean>(false);
   const [cityResultSummary, setCityResultSummary] = useState<string>('');
+  const [groundingSources, setGroundingSources] = useState<Array<{ title: string; uri: string }>>([]);
 
   // Chrome Extension State
   const [copiedFile, setCopiedFile] = useState<string | null>(null);
@@ -86,13 +88,14 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
     fetchLogs();
   }, []);
 
-  // 1. Handle Live City Extraction
+  // 1. Handle Live City & Web Resource Extraction with AI Search Grounding
   const handleFetchCityLeads = async () => {
     const cityToUse = customCityInput.trim() || selectedCity;
     if (!cityToUse) return;
 
     setIsFetchingCity(true);
     setCityResultSummary('');
+    setGroundingSources([]);
 
     try {
       const res = await fetch('/api/fetch-live-city-leads', {
@@ -100,6 +103,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           city: cityToUse,
+          sourcePlatform,
           queryCategory
         })
       });
@@ -107,14 +111,17 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
       const data = await res.json();
       if (data.success && data.leads?.length) {
         onAddLeads(data.leads);
-        setCityResultSummary(data.summary || `Extracted ${data.leads.length} real location leads for ${cityToUse}.`);
-        onShowNotification(`Extracted ${data.leads.length} live Google Places leads for ${cityToUse}!`);
+        setCityResultSummary(data.summary || `Extracted ${data.leads.length} live leads from ${sourcePlatform} for ${cityToUse}.`);
+        if (data.groundingSources && data.groundingSources.length > 0) {
+          setGroundingSources(data.groundingSources);
+        }
+        onShowNotification(`Extracted ${data.leads.length} grounded live leads from ${sourcePlatform} for ${cityToUse}!`);
       } else {
-        onShowNotification('Failed to fetch city leads. Please try again.');
+        onShowNotification('Failed to fetch live web leads. Please try again.');
       }
     } catch (err) {
       console.error(err);
-      onShowNotification('Error connecting to Google Places extractor API.');
+      onShowNotification('Error connecting to AI Search Grounding Extractor API.');
     } finally {
       setIsFetchingCity(false);
     }
@@ -384,6 +391,24 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
+                  Web Resource Platform Source
+                </label>
+                <select
+                  value={sourcePlatform}
+                  onChange={(e) => setSourcePlatform(e.target.value)}
+                  className="w-full bg-[#0A0A0A] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500 font-medium"
+                >
+                  <option value="Multi-Source Web Crawl (Google, Justdial, IndiaMART, Sulekha)">Multi-Source Web Crawl (Google + Directories + Forums)</option>
+                  <option value="Google Search & Places">Google Search & Verified Local Places</option>
+                  <option value="Justdial Public Relocation Portal">Justdial Public Moving Inquiries</option>
+                  <option value="IndiaMART Packers & Movers Directory">IndiaMART B2B & B2C Mover Directory</option>
+                  <option value="Sulekha Directory Moving Demands">Sulekha Household & Office Shift Demands</option>
+                  <option value="Quora & Social Media Relocation Posts">Quora & Social Media Relocation Threads</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
                   Extraction Focus Category
                 </label>
                 <select
@@ -398,6 +423,11 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                 </select>
               </div>
 
+              <div className="bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-blue-300 font-mono">
+                <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-blue-400" /> AI Google Grounding</span>
+                <span className="text-emerald-400 font-bold uppercase text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Active</span>
+              </div>
+
               <button
                 onClick={handleFetchCityLeads}
                 disabled={isFetchingCity}
@@ -406,12 +436,12 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                 {isFetchingCity ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Extracting Google Places for {customCityInput || selectedCity}...</span>
+                    <span>Searching Web for {customCityInput || selectedCity}...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>Extract Live Leads for {customCityInput || selectedCity}</span>
+                    <span>Extract Live Web Leads for {customCityInput || selectedCity}</span>
                   </>
                 )}
               </button>
@@ -423,50 +453,76 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                 <div className="flex items-center justify-between border-b border-white/5 pb-3">
                   <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                     <Globe className="w-4 h-4 text-emerald-400" />
-                    <span>Live Google Places API & Geographic Grounding</span>
+                    <span>Real-Time AI Web Search & Multi-Source Intelligence</span>
                   </h2>
-                  <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 font-mono">
-                    Real City Data
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20 font-mono font-medium">
+                    Google Search Grounded
                   </span>
                 </div>
 
                 <div className="mt-4 space-y-3 text-xs text-slate-300 font-light leading-relaxed">
                   <p>
-                    Whenever a specific city is selected above, Lead Warehouse CRM connects with Google Places and geographic search indexes to extract active mover inquiries, local area rates, and verified location requests specific to that city.
+                    Lead Warehouse CRM uses Gemini AI with live Google Search Grounding to query public search indexes, directory portals, forum threads, and business listings in real time for your target city or route.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 space-y-1">
-                      <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider block">Local Neighborhoods</span>
+                      <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider block">Multi-Portal Extraction</span>
                       <p className="text-slate-400 text-[11px]">
-                        Captures sub-locality pickup origins (e.g., Whitefield, Indiranagar, Powai, Gurgaon CyberHub).
+                        Captures live moving inquiries across Google, Justdial, IndiaMART, Sulekha, and community forums.
                       </p>
                     </div>
                     <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 space-y-1">
-                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Instant Auto-Populate</span>
+                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Grounded Citations</span>
                       <p className="text-slate-400 text-[11px]">
-                        Extracted city leads are immediately synced directly into your primary CRM lead table with full contact details.
+                        Every lead extracted is tagged with its source portal and real web search grounding links.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {cityResultSummary ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl text-emerald-300 text-xs flex items-start space-x-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold block">Extraction Result for {customCityInput || selectedCity}:</span>
-                    <p className="text-slate-300 mt-0.5">{cityResultSummary}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-[#0A0A0A] border border-white/5 p-4 rounded-xl text-slate-500 text-xs text-center italic">
-                  Select a city and click "Extract Live Leads" to pull real geographical relocation data into your table.
-                </div>
-              )}
-            </div>
+              <div className="space-y-3">
+                {cityResultSummary ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl text-emerald-300 text-xs flex items-start space-x-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="space-y-2 w-full">
+                      <div>
+                        <span className="font-bold block text-emerald-300">Extraction Result for {customCityInput || selectedCity}:</span>
+                        <p className="text-slate-300 mt-0.5">{cityResultSummary}</p>
+                      </div>
 
+                      {groundingSources.length > 0 && (
+                        <div className="pt-2 border-t border-emerald-500/20">
+                          <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                            <ExternalLink className="w-3 h-3 text-emerald-400" /> Grounded Web Source References:
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {groundingSources.map((src, idx) => (
+                              <a
+                                key={idx}
+                                href={src.uri}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                className="inline-flex items-center gap-1 text-[10px] bg-black/40 hover:bg-black/60 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg border border-white/10 transition-colors max-w-xs truncate"
+                              >
+                                <Globe className="w-3 h-3 text-blue-400 shrink-0" />
+                                <span className="truncate">{src.title || src.uri}</span>
+                                <ExternalLink className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#0A0A0A] border border-white/5 p-4 rounded-xl text-slate-500 text-xs text-center italic">
+                    Select a target city and resource platform above, then click "Extract Live Web Leads" to query live web data.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
