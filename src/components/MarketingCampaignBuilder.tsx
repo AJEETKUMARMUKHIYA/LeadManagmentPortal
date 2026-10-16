@@ -92,9 +92,9 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
     <div className="space-y-6">
       
       {/* Page Title & Intro */}
-      <div className="bg-[#141414] p-6 rounded-2xl border border-white/5 shadow-md">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/30">
+      <div className="bg-gradient-to-r from-[#0C1322] via-[#101A2F] to-[#0C1322] p-6 rounded-2xl border border-slate-800/80 shadow-xl shadow-black/40 ring-1 ring-white/5">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-blue-500/25 ring-1 ring-white/20">
             <Send className="w-5 h-5" />
           </div>
           <div>
@@ -109,8 +109,8 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Campaign Settings Panel */}
-        <div className="bg-[#141414] border border-white/5 rounded-2xl p-5 space-y-5 shadow-lg h-fit">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 border-b border-white/5 pb-3 flex items-center justify-between">
+        <div className="bg-[#0C1322] border border-slate-800/80 rounded-2xl p-5 space-y-5 shadow-xl h-fit ring-1 ring-white/5">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800/80 pb-3 flex items-center justify-between">
             <span>Campaign Parameters</span>
             <Sparkles className="w-4 h-4 text-blue-400" />
           </h2>
@@ -122,10 +122,10 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
               <button
                 type="button"
                 onClick={() => setChannel('WhatsApp')}
-                className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   channel === 'WhatsApp'
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-md'
-                    : 'bg-[#0A0A0A] border-white/5 text-slate-400 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 shadow-md shadow-blue-500/20 font-semibold'
+                    : 'bg-[#070D18] border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <MessageSquare className="w-4 h-4 mb-1" />
@@ -134,10 +134,10 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
               <button
                 type="button"
                 onClick={() => setChannel('SMS')}
-                className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   channel === 'SMS'
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-md'
-                    : 'bg-[#0A0A0A] border-white/5 text-slate-400 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 shadow-md shadow-blue-500/20 font-semibold'
+                    : 'bg-[#070D18] border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Phone className="w-4 h-4 mb-1" />
@@ -146,10 +146,10 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
               <button
                 type="button"
                 onClick={() => setChannel('Email')}
-                className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
                   channel === 'Email'
-                    ? 'bg-blue-600 text-white border-blue-500 shadow-md'
-                    : 'bg-[#0A0A0A] border-white/5 text-slate-400 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 shadow-md shadow-blue-500/20 font-semibold'
+                    : 'bg-[#070D18] border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                 }`}
               >
                 <Mail className="w-4 h-4 mb-1" />
@@ -164,7 +164,7 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
             <select
               value={targetSegment}
               onChange={(e) => setTargetSegment(e.target.value as any)}
-              className="w-full bg-[#0A0A0A] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500"
+              className="w-full bg-[#070D18] border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500 shadow-inner"
             >
               <option value="selected">Single Selected Lead</option>
               <option value="hot">Hot Intent Leads (Score ≥ 85)</option>
@@ -176,8 +176,11 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
               <select
                 value={selectedLeadId}
                 onChange={(e) => setSelectedLeadId(e.target.value)}
-                className="w-full bg-[#0A0A0A] border border-white/10 text-blue-400 font-medium text-xs rounded-xl p-2.5 mt-2 focus:border-blue-500"
+                className="w-full bg-[#070D18] border border-slate-800 text-blue-300 font-semibold text-xs rounded-xl p-2.5 mt-2 focus:border-blue-500 shadow-inner"
               >
+                {leads.length === 0 && (
+                  <option value="">No leads in AJSUM directory (fetch new leads first)</option>
+                )}
                 {leads.map(l => (
                   <option key={l.id} value={l.id}>{l.customerName} - {l.serviceType} ({l.originCity})</option>
                 ))}
@@ -191,7 +194,7 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
             <select
               value={tone}
               onChange={(e) => setTone(e.target.value as any)}
-              className="w-full bg-[#0A0A0A] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500"
+              className="w-full bg-[#070D18] border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500 shadow-inner"
             >
               <option value="Professional">Professional & Trustworthy</option>
               <option value="Urgent Offer">Limited Time Discount Hook</option>
@@ -207,7 +210,7 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
               value={promotionalOffer}
               onChange={(e) => setPromotionalOffer(e.target.value)}
               placeholder="e.g., 10% Discount + Free Bubble Wrap"
-              className="w-full bg-[#0A0A0A] border border-white/10 focus:border-blue-500 rounded-xl p-2.5 text-xs text-white"
+              className="w-full bg-[#070D18] border border-slate-800 focus:border-blue-500 rounded-xl p-2.5 text-xs text-white shadow-inner"
             />
           </div>
 
@@ -215,7 +218,7 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
           <button
             onClick={handleGenerateCampaign}
             disabled={isGenerating || targetLeadsList.length === 0}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/30 transition-all disabled:opacity-50 cursor-pointer"
           >
             {isGenerating ? (
               <>
@@ -235,55 +238,55 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
         {/* Results Panel */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center space-x-2">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
               <span>Generated Marketing Copy</span>
-              <span className="text-xs font-normal text-slate-400 bg-[#141414] border border-white/5 px-2.5 py-0.5 rounded-full font-mono">
+              <span className="text-xs font-semibold text-slate-300 bg-[#0C1322] border border-slate-800 px-3 py-1 rounded-full font-mono shadow-sm">
                 {generatedMessages.length} Messages Ready
               </span>
             </h2>
           </div>
 
           {generatedMessages.length === 0 ? (
-            <div className="bg-[#141414] border border-white/5 rounded-2xl p-12 text-center text-slate-500">
-              <MessageSquare className="w-10 h-10 mx-auto text-slate-700 mb-3" />
-              <p className="text-sm font-medium text-slate-400">No marketing messages generated yet.</p>
-              <p className="text-xs mt-1 text-slate-500 font-light">Configure parameters on the left and click "Generate Campaign Copy".</p>
+            <div className="bg-[#0C1322] border border-slate-800/80 rounded-2xl p-12 text-center text-slate-500 ring-1 ring-white/5">
+              <MessageSquare className="w-10 h-10 mx-auto text-slate-600 mb-3" />
+              <p className="text-sm font-semibold text-slate-300">No marketing messages generated yet.</p>
+              <p className="text-xs mt-1 text-slate-400 font-light">Configure parameters on the left and click "Generate Campaign Copy".</p>
             </div>
           ) : (
             <div className="space-y-4">
               {generatedMessages.map((msg, idx) => {
                 const leadData = leads.find(l => l.id === msg.leadId);
                 return (
-                  <div key={idx} className="bg-[#141414] border border-white/5 rounded-2xl p-4 space-y-3 shadow-md hover:border-white/10 transition-all">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+                  <div key={idx} className="bg-[#0C1322] border border-slate-800/80 rounded-2xl p-4 space-y-3 shadow-lg hover:border-blue-500/30 transition-all ring-1 ring-white/5">
+                    <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
                       <div>
                         <span className="font-semibold text-white text-sm">{msg.customerName}</span>
                         {leadData && (
-                          <span className="text-xs text-blue-400 ml-2 font-medium">
+                          <span className="text-xs text-blue-300 ml-2 font-medium">
                             • {leadData.serviceType} ({leadData.originCity} → {leadData.destinationCity})
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] font-mono font-medium bg-[#0A0A0A] text-slate-300 px-2.5 py-0.5 rounded-full border border-white/10">
+                      <span className="text-[10px] font-mono font-semibold bg-[#070D18] text-blue-300 px-2.5 py-0.5 rounded-full border border-blue-500/30">
                         {channel}
                       </span>
                     </div>
 
                     {/* Message Box */}
-                    <div className="bg-[#0A0A0A] p-3.5 rounded-xl border border-white/5 font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
+                    <div className="bg-[#070D18] p-3.5 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-200 whitespace-pre-wrap leading-relaxed shadow-inner">
                       {msg.content}
                     </div>
 
                     {/* Action Bar */}
                     <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="text-[11px] text-slate-500 font-mono">
-                        Search Query: "{leadData?.fullSearchQuery || 'Inquiry'}"
+                      <span className="text-[11px] text-slate-400 font-mono truncate max-w-xs">
+                        Search: "{leadData?.fullSearchQuery || 'Inquiry'}"
                       </span>
 
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleCopy(msg.content, idx)}
-                          className="flex items-center space-x-1 bg-[#0A0A0A] hover:bg-white/5 text-slate-200 font-medium px-3 py-1.5 rounded-lg border border-white/5 transition-colors"
+                          className="flex items-center space-x-1.5 bg-[#070D18] hover:bg-slate-800 text-slate-200 font-medium px-3.5 py-1.5 rounded-xl border border-slate-800 transition-colors cursor-pointer shadow-sm"
                         >
                           {copiedIdx === idx ? (
                             <>
@@ -292,7 +295,7 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5" />
+                              <Copy className="w-3.5 h-3.5 text-slate-400" />
                               <span>Copy Text</span>
                             </>
                           )}
@@ -300,7 +303,7 @@ export const MarketingCampaignBuilder: React.FC<MarketingCampaignBuilderProps> =
 
                         <button
                           onClick={() => handleSendAndLog(msg.leadId, msg.content)}
-                          className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+                          className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-1.5 rounded-xl transition-colors shadow-md shadow-emerald-600/25 cursor-pointer"
                         >
                           <Send className="w-3.5 h-3.5" />
                           <span>Log Sent to CRM</span>

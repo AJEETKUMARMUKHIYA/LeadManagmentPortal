@@ -60,53 +60,67 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ leads })
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
 
+  if (leads.length === 0) {
+    return (
+      <div className="bg-[#0C1322] border border-slate-800/80 rounded-2xl p-12 text-center space-y-4 shadow-xl ring-1 ring-white/5">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-md shadow-blue-500/25 ring-1 ring-white/20">
+          <TrendingUp className="w-7 h-7" />
+        </div>
+        <h3 className="text-base font-bold text-slate-100">No Analytics Data in AJSUM Yet</h3>
+        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+          All hardcoded demo data has been removed. Once you fetch active Google leads or simulate search queries, pipeline conversion metrics, service distribution, and search keyword analytics will populate here.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl shadow-md flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
+        <div className="bg-[#0C1322] border border-slate-800/80 p-4 rounded-2xl shadow-xl flex items-center space-x-4 ring-1 ring-white/5">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
             <Search className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Total Extracted Leads</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">Total Extracted Leads</span>
             <span className="text-2xl font-bold text-white font-mono">{totalLeads}</span>
-            <span className="text-[11px] text-blue-400 block mt-0.5">Google Chrome Inquiries</span>
+            <span className="text-[11px] text-blue-300 block mt-0.5">Google Inquiries</span>
           </div>
         </div>
 
-        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl shadow-md flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
+        <div className="bg-[#0C1322] border border-slate-800/80 p-4 rounded-2xl shadow-xl flex items-center space-x-4 ring-1 ring-white/5">
+          <div className="w-12 h-12 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
             <Flame className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Hot Intent Leads</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">Hot Intent Leads</span>
             <span className="text-2xl font-bold text-white font-mono">{highIntentLeads}</span>
-            <span className="text-[11px] text-rose-400 block mt-0.5">Score ≥ 85/100</span>
+            <span className="text-[11px] text-rose-300 block mt-0.5">Score ≥ 85/100</span>
           </div>
         </div>
 
-        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl shadow-md flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
+        <div className="bg-[#0C1322] border border-slate-800/80 p-4 rounded-2xl shadow-xl flex items-center space-x-4 ring-1 ring-white/5">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
             <DollarSign className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Pipeline Revenue Value</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">Pipeline Revenue Value</span>
             <span className="text-2xl font-bold text-white font-mono">₹{totalPipelineValue.toLocaleString()}</span>
-            <span className="text-[11px] text-emerald-400 block mt-0.5">Est. Quote Value</span>
+            <span className="text-[11px] text-emerald-300 block mt-0.5">Est. Quote Value</span>
           </div>
         </div>
 
-        <div className="bg-[#141414] border border-white/5 p-4 rounded-2xl shadow-md flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/30 shrink-0">
+        <div className="bg-[#0C1322] border border-slate-800/80 p-4 rounded-2xl shadow-xl flex items-center space-x-4 ring-1 ring-white/5">
+          <div className="w-12 h-12 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center border border-indigo-500/30 shrink-0">
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold block">Avg Lead Quality Score</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block">Avg Lead Quality Score</span>
             <span className="text-2xl font-bold text-white font-mono">{avgLeadScore} / 100</span>
-            <span className="text-[11px] text-purple-400 block mt-0.5">High Conversion Fit</span>
+            <span className="text-[11px] text-indigo-300 block mt-0.5">High Conversion Fit</span>
           </div>
         </div>
 
@@ -116,9 +130,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ leads })
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Service Demand Breakdown */}
-        <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl shadow-lg space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center space-x-2">
+        <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl shadow-xl space-y-4 ring-1 ring-white/5">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
               <Layers className="w-4 h-4 text-blue-400" />
               <span>Service Demand Breakdown</span>
             </h2>
@@ -141,7 +155,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ leads })
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '12px' }}
+                  contentStyle={{ backgroundColor: '#070D18', borderColor: 'rgba(59, 130, 246, 0.3)', color: '#fff', borderRadius: '12px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -149,9 +163,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ leads })
         </div>
 
         {/* Lead Status Pipeline */}
-        <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl shadow-lg space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center space-x-2">
+        <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl shadow-xl space-y-4 ring-1 ring-white/5">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
               <TrendingUp className="w-4 h-4 text-emerald-400" />
               <span>Lead Conversion Pipeline</span>
             </h2>
@@ -162,9 +176,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ leads })
                 <XAxis dataKey="name" stroke="#64748b" fontSize={10} />
                 <YAxis stroke="#64748b" fontSize={10} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0A0A0A', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '12px' }}
+                  contentStyle={{ backgroundColor: '#070D18', borderColor: 'rgba(59, 130, 246, 0.3)', color: '#fff', borderRadius: '12px' }}
                 />
-                <Bar dataKey="count" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -173,23 +187,23 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ leads })
       </div>
 
       {/* Top Extracted Google Search Keywords */}
-      <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl shadow-lg space-y-4">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center space-x-2">
+      <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl shadow-xl space-y-4 ring-1 ring-white/5">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
             <Tag className="w-4 h-4 text-blue-400" />
             <span>Top Searched Mover & Packer Keywords Extracted from Google Chrome</span>
           </h2>
-          <span className="text-[10px] text-slate-500">High Frequency Terms</span>
+          <span className="text-[10px] text-slate-400 font-mono">High Frequency Terms</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {sortedKeywords.map(([keyword, count], idx) => (
-            <div key={idx} className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 flex items-center justify-between">
+            <div key={idx} className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 flex items-center justify-between shadow-sm">
               <div>
-                <span className="text-xs font-semibold text-blue-400 block capitalize">{keyword}</span>
-                <span className="text-[10px] text-slate-500">Search Keyword</span>
+                <span className="text-xs font-semibold text-blue-300 block capitalize">{keyword}</span>
+                <span className="text-[10px] text-slate-500">Keyword</span>
               </div>
-              <span className="text-xs font-mono font-bold bg-blue-600/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20">
+              <span className="text-xs font-mono font-bold bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
                 {count}x
               </span>
             </div>

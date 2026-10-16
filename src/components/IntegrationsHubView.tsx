@@ -38,10 +38,11 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
   const [selectedCity, setSelectedCity] = useState<string>('Bangalore');
   const [customCityInput, setCustomCityInput] = useState<string>('');
   const [sourcePlatform, setSourcePlatform] = useState<string>('Multi-Source Web Crawl (Google, Justdial, IndiaMART, Sulekha)');
-  const [queryCategory, setQueryCategory] = useState<string>('Movers & Packers Listings');
+  const [queryCategory, setQueryCategory] = useState<string>('Recent Search Inquiries');
   const [isFetchingCity, setIsFetchingCity] = useState<boolean>(false);
   const [cityResultSummary, setCityResultSummary] = useState<string>('');
   const [groundingSources, setGroundingSources] = useState<Array<{ title: string; uri: string }>>([]);
+  const [lastFetchedLeads, setLastFetchedLeads] = useState<Lead[]>([]);
 
   // Chrome Extension State
   const [copiedFile, setCopiedFile] = useState<string | null>(null);
@@ -111,11 +112,12 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
       const data = await res.json();
       if (data.success && data.leads?.length) {
         onAddLeads(data.leads);
+        setLastFetchedLeads(data.leads);
         setCityResultSummary(data.summary || `Extracted ${data.leads.length} live leads from ${sourcePlatform} for ${cityToUse}.`);
         if (data.groundingSources && data.groundingSources.length > 0) {
           setGroundingSources(data.groundingSources);
         }
-        onShowNotification(`Extracted ${data.leads.length} grounded live leads from ${sourcePlatform} for ${cityToUse}!`);
+        onShowNotification(`Extracted & added ${data.leads.length} active leads for ${cityToUse} directly to your CRM directory!`);
       } else {
         onShowNotification('Failed to fetch live web leads. Please try again.');
       }
@@ -200,9 +202,9 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
   // Chrome extension file templates
   const manifestCode = `{
   "manifest_version": 3,
-  "name": "Lead Warehouse - Mover Search Extractor",
+  "name": "AJSUM - Mover Search Extractor",
   "version": "1.0.0",
-  "description": "Extracts Google Chrome search queries & mover listings into Lead Warehouse CRM with 1-click.",
+  "description": "Extracts Google Chrome search queries & mover listings into AJSUM CRM with 1-click.",
   "permissions": ["activeTab", "scripting", "storage"],
   "action": {
     "default_popup": "popup.html",
@@ -222,7 +224,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
   const query = urlParams.get('q');
   
   if (query && (query.toLowerCase().includes('packers') || query.toLowerCase().includes('movers') || query.toLowerCase().includes('shifting'))) {
-    console.log('[Lead Warehouse Extractor] Detected mover search query:', query);
+    console.log('[AJSUM Extractor] Detected mover search query:', query);
     
     // Inject floating badge
     const btn = document.createElement('button');
@@ -282,7 +284,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
     <div className="max-w-6xl mx-auto space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-[#0C1322] border border-slate-800/80 p-6 rounded-2xl shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <div className="w-12 h-12 rounded-2xl bg-blue-600/10 text-blue-400 flex items-center justify-center border border-blue-500/30 shrink-0">
             <Zap className="w-6 h-6" />
@@ -301,7 +303,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
         </div>
 
         {/* Integration Switcher */}
-        <div className="flex items-center bg-[#0A0A0A] p-1 rounded-xl border border-white/5 w-full md:w-auto overflow-x-auto">
+        <div className="flex items-center bg-[#070D18] p-1 rounded-xl border border-slate-800/80 w-full md:w-auto overflow-x-auto">
           <button
             onClick={() => setActiveSubTab('places')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center space-x-2 transition-all whitespace-nowrap ${
@@ -344,48 +346,73 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             {/* Control Form */}
-            <div className="md:col-span-1 bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-4 shadow-lg">
-              <div className="flex items-center space-x-2 border-b border-white/5 pb-3">
+            <div className="md:col-span-1 bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-lg">
+              <div className="flex items-center space-x-2 border-b border-slate-800/80 pb-3">
                 <MapPin className="w-4 h-4 text-blue-400" />
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
                   Select Target City
                 </h2>
               </div>
 
+              {/* Quick Select Buttons for Requested Cities */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Popular Indian Metro Cities
+                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>Quick-Select Target Metro City:</span>
+                  <span className="text-[10px] text-blue-400">5 High-Demand Hubs</span>
                 </label>
-                <select
-                  value={selectedCity}
-                  onChange={(e) => {
-                    setSelectedCity(e.target.value);
-                    setCustomCityInput('');
-                  }}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500"
-                >
-                  <option value="Bangalore">Bangalore (Indiranagar, Whitefield, HSR)</option>
-                  <option value="Delhi NCR">Delhi NCR (Gurgaon, Noida, Dwarka)</option>
-                  <option value="Mumbai">Mumbai (Andheri, Powai, Thane, Navi Mumbai)</option>
-                  <option value="Hyderabad">Hyderabad (Gachibowli, Hitech City, Kondapur)</option>
-                  <option value="Pune">Pune (Kharadi, Hinjewadi, Wakad, Baner)</option>
-                  <option value="Chennai">Chennai (Velachery, OMR, Anna Nagar)</option>
-                  <option value="Kolkata">Kolkata (Salt Lake, New Town, Park Street)</option>
-                  <option value="Ahmedabad">Ahmedabad (SG Highway, Prahlad Nagar)</option>
-                  <option value="Jaipur">Jaipur (Vaishali Nagar, Malviya Nagar)</option>
-                </select>
+                <div className="grid grid-cols-2 gap-1.5 mb-2.5">
+                  {[
+                    { name: 'Bangalore', label: '📍 Bangalore', sub: 'Indiranagar, Whitefield, HSR' },
+                    { name: 'Delhi NCR', label: '📍 Delhi NCR', sub: 'Dwarka, Gurgaon, Noida' },
+                    { name: 'Mumbai', label: '📍 Mumbai', sub: 'Andheri, Powai, Thane' },
+                    { name: 'Hyderabad', label: '📍 Hyderabad', sub: 'Gachibowli, Hitech City' },
+                    { name: 'Pune', label: '📍 Pune', sub: 'Kothrud, Hinjewadi, Wakad' }
+                  ].map((cityItem) => (
+                    <button
+                      key={cityItem.name}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCity(cityItem.name);
+                        setCustomCityInput('');
+                      }}
+                      className={`text-left p-2 rounded-xl border text-xs transition-all ${
+                        selectedCity === cityItem.name && !customCityInput
+                          ? 'bg-blue-600 text-white border-blue-400 shadow-md ring-1 ring-blue-400'
+                          : 'bg-[#070D18] hover:bg-white/5 text-slate-300 border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="font-semibold text-[11px]">{cityItem.label}</div>
+                      <div className="text-[9px] text-slate-400 truncate mt-0.5">{cityItem.sub}</div>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCity('Chennai');
+                      setCustomCityInput('');
+                    }}
+                    className={`text-left p-2 rounded-xl border text-xs transition-all ${
+                      selectedCity === 'Chennai' && !customCityInput
+                        ? 'bg-blue-600 text-white border-blue-400 shadow-md ring-1 ring-blue-400'
+                        : 'bg-[#070D18] hover:bg-white/5 text-slate-300 border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="font-semibold text-[11px]">📍 Chennai</div>
+                    <div className="text-[9px] text-slate-400 truncate mt-0.5">OMR, Velachery</div>
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
-                  Or Type Custom City / Region
+                  Or Custom City / Location
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Chandigarh, Lucknow, Kochi..."
+                  placeholder="e.g. Chandigarh, Lucknow, Kolkata, Ahmedabad..."
                   value={customCityInput}
                   onChange={(e) => setCustomCityInput(e.target.value)}
-                  className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-blue-500"
+                  className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-blue-500"
                 />
               </div>
 
@@ -396,14 +423,13 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                 <select
                   value={sourcePlatform}
                   onChange={(e) => setSourcePlatform(e.target.value)}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500 font-medium"
+                  className="w-full bg-[#070D18] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500 font-medium"
                 >
-                  <option value="Multi-Source Web Crawl (Google, Justdial, IndiaMART, Sulekha)">Multi-Source Web Crawl (Google + Directories + Forums)</option>
+                  <option value="Multi-Source Web Crawl (Google, Justdial, IndiaMART, Sulekha)">Multi-Source Web Crawl (Google Search + Directories + Forums)</option>
                   <option value="Google Search & Places">Google Search & Verified Local Places</option>
                   <option value="Justdial Public Relocation Portal">Justdial Public Moving Inquiries</option>
                   <option value="IndiaMART Packers & Movers Directory">IndiaMART B2B & B2C Mover Directory</option>
                   <option value="Sulekha Directory Moving Demands">Sulekha Household & Office Shift Demands</option>
-                  <option value="Quora & Social Media Relocation Posts">Quora & Social Media Relocation Threads</option>
                 </select>
               </div>
 
@@ -414,43 +440,43 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                 <select
                   value={queryCategory}
                   onChange={(e) => setQueryCategory(e.target.value)}
-                  className="w-full bg-[#0A0A0A] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500"
+                  className="w-full bg-[#070D18] border border-white/10 text-slate-200 text-xs rounded-xl p-2.5 focus:border-blue-500"
                 >
+                  <option value="Recent Search Inquiries">Active Live Customer Household Move Queries</option>
                   <option value="Movers & Packers Listings">Verified Movers & Packers Place Listings</option>
-                  <option value="Recent Search Inquiries">Active Live Customer Move Queries</option>
                   <option value="Corporate Relocation Demands">Corporate & Commercial Office Relocations</option>
-                  <option value="Vehicle Carrier Demands">Bike & Car Carrier Transport Inquiries</option>
+                  <option value="Vehicle Carrier Demands">Household Items + Bike / Car Transport</option>
                 </select>
               </div>
 
               <div className="bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl flex items-center justify-between text-[11px] text-blue-300 font-mono">
-                <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-blue-400" /> AI Google Grounding</span>
-                <span className="text-emerald-400 font-bold uppercase text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Active</span>
+                <span className="flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5 text-blue-400" /> Real-Time Google Crawl</span>
+                <span className="text-emerald-400 font-bold uppercase text-[10px] bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Ready</span>
               </div>
 
               <button
                 onClick={handleFetchCityLeads}
                 disabled={isFetchingCity}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition-all disabled:opacity-50"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
               >
                 {isFetchingCity ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Searching Web for {customCityInput || selectedCity}...</span>
+                    <span>Searching Google & Web for {customCityInput || selectedCity}...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    <span>Extract Live Web Leads for {customCityInput || selectedCity}</span>
+                    <span>Fetch Active Leads for {customCityInput || selectedCity}</span>
                   </>
                 )}
               </button>
             </div>
 
             {/* Information & Live Summary Box */}
-            <div className="md:col-span-2 bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-4 shadow-lg flex flex-col justify-between">
+            <div className="md:col-span-2 bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                   <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                     <Globe className="w-4 h-4 text-emerald-400" />
                     <span>Real-Time AI Web Search & Multi-Source Intelligence</span>
@@ -462,17 +488,17 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
 
                 <div className="mt-4 space-y-3 text-xs text-slate-300 font-light leading-relaxed">
                   <p>
-                    Lead Warehouse CRM uses Gemini AI with live Google Search Grounding to query public search indexes, directory portals, forum threads, and business listings in real time for your target city or route.
+                    AJSUM CRM uses Gemini AI with live Google Search Grounding to query public search indexes, directory portals, forum threads, and business listings in real time for your target city or route.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 space-y-1">
+                    <div className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 space-y-1">
                       <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider block">Multi-Portal Extraction</span>
                       <p className="text-slate-400 text-[11px]">
                         Captures live moving inquiries across Google, Justdial, IndiaMART, Sulekha, and community forums.
                       </p>
                     </div>
-                    <div className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 space-y-1">
+                    <div className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 space-y-1">
                       <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">Grounded Citations</span>
                       <p className="text-slate-400 text-[11px]">
                         Every lead extracted is tagged with its source portal and real web search grounding links.
@@ -517,13 +543,106 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-[#0A0A0A] border border-white/5 p-4 rounded-xl text-slate-500 text-xs text-center italic">
-                    Select a target city and resource platform above, then click "Extract Live Web Leads" to query live web data.
+                  <div className="bg-[#070D18] border border-slate-800/80 p-4 rounded-xl text-slate-500 text-xs text-center italic">
+                    Select a target city (Bangalore, Delhi NCR, Mumbai, Hyderabad, Pune) above, then click "Fetch Active Leads" to query live household moving demands.
                   </div>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Active Live Leads Showcase for the selected city */}
+          {lastFetchedLeads.length > 0 && (
+            <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 font-bold">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <span>Active Household Moving Inquiries ({customCityInput || selectedCity})</span>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                        {lastFetchedLeads.length} Leads Added to CRM
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400 font-light">Real-time user inquiries with verified household inventory items & routes</p>
+                  </div>
+                </div>
+
+                <a
+                  href={`https://www.google.com/search?q=${encodeURIComponent(`packers and movers in ${customCityInput || selectedCity} household shifting`)}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 transition-all font-medium"
+                >
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>View Google Search Index for {customCityInput || selectedCity}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {lastFetchedLeads.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="bg-[#070D18] border border-slate-800/80 hover:border-blue-500/30 p-4 rounded-xl space-y-3 transition-all shadow-md group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-sm text-white flex items-center gap-1.5">
+                          <span>{lead.customerName}</span>
+                          <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.2 rounded border border-blue-500/20 font-mono">
+                            {lead.propertyType}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono mt-0.5 flex items-center gap-2">
+                          <span>📞 {lead.phone}</span>
+                          {lead.email && <span>✉️ {lead.email}</span>}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end shrink-0">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
+                          🔥 {lead.leadScore}/100 Intent
+                        </span>
+                        <span className="text-xs font-semibold text-emerald-400 mt-1">
+                          ₹{lead.estimatedBudget?.toLocaleString('en-IN')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Route Details */}
+                    <div className="bg-[#0C1322] p-2.5 rounded-lg border border-slate-800/80 text-xs space-y-1">
+                      <div className="flex items-center text-slate-300">
+                        <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0 mr-1.5" />
+                        <span className="text-slate-400 mr-1">Pickup:</span>
+                        <span className="font-medium text-white truncate">{lead.originCity}</span>
+                      </div>
+                      <div className="flex items-center text-slate-300">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mr-1.5" />
+                        <span className="text-slate-400 mr-1">Drop:</span>
+                        <span className="font-medium text-white truncate">{lead.destinationCity}</span>
+                      </div>
+                    </div>
+
+                    {/* Household Inventory Notes */}
+                    <div className="text-xs text-slate-400 bg-black/40 p-2.5 rounded-lg border border-slate-800/80 leading-relaxed font-light">
+                      <span className="font-semibold text-slate-300 block mb-0.5 text-[11px]">📦 Household Items & Inventory:</span>
+                      <p className="line-clamp-3 text-[11px] text-slate-300">{lead.extractedNotes}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">
+                      <span className="font-mono text-[10px]">📅 Move: {lead.moveDate}</span>
+                      <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Live In CRM Directory
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -533,8 +652,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Download & Instructions */}
-            <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-4 shadow-lg">
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-lg">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                   <Puzzle className="w-4 h-4 text-blue-400" />
                   <span>Google Chrome Browser Extension Integration</span>
@@ -546,15 +665,15 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
 
               <div className="space-y-3 text-xs text-slate-300 font-light">
                 <p>
-                  Install the Lead Warehouse Chrome Extension in your Google Chrome browser to automatically capture search queries, selected page text, and mover listings with 1-click while browsing.
+                  Install the AJSUM Chrome Extension in your Google Chrome browser to automatically capture search queries, selected page text, and mover listings with 1-click while browsing.
                 </p>
 
-                <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/5 space-y-2">
+                <div className="bg-[#070D18] p-4 rounded-xl border border-slate-800/80 space-y-2">
                   <h3 className="text-xs font-semibold text-white flex items-center space-x-1.5">
                     <span>How to Install in Google Chrome (3 Easy Steps)</span>
                   </h3>
                   <ol className="list-decimal list-inside space-y-1.5 text-slate-400 text-[11px] font-mono">
-                    <li>Copy the extension files below or save them into a folder named <code className="text-blue-400">lead-warehouse-extension</code>.</li>
+                    <li>Copy the extension files below or save them into a folder named <code className="text-blue-400">ajsum-lead-extension</code>.</li>
                     <li>Open Chrome and navigate to <code className="text-blue-400">chrome://extensions/</code> in your address bar.</li>
                     <li>Enable <strong>"Developer mode"</strong> in top right, click <strong>"Load unpacked"</strong>, and select your folder!</li>
                   </ol>
@@ -572,7 +691,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       <span>{copiedFile === 'manifest.json' ? 'Copied' : 'Copy manifest.json'}</span>
                     </button>
                   </div>
-                  <pre className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 text-[10px] text-slate-300 font-mono overflow-x-auto max-h-36">
+                  <pre className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 text-[10px] text-slate-300 font-mono overflow-x-auto max-h-36">
                     {manifestCode}
                   </pre>
 
@@ -586,7 +705,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       <span>{copiedFile === 'content.js' ? 'Copied' : 'Copy content.js'}</span>
                     </button>
                   </div>
-                  <pre className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 text-[10px] text-slate-300 font-mono overflow-x-auto max-h-36">
+                  <pre className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 text-[10px] text-slate-300 font-mono overflow-x-auto max-h-36">
                     {contentJsCode}
                   </pre>
                 </div>
@@ -594,9 +713,9 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
             </div>
 
             {/* Interactive Chrome Extension Simulator */}
-            <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-4 shadow-lg flex flex-col justify-between">
+            <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                   <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                     <Smartphone className="w-4 h-4 text-emerald-400" />
                     <span>Live Chrome Extension Capture Simulator</span>
@@ -619,7 +738,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       type="text"
                       value={simulatedUrl}
                       onChange={(e) => setSimulatedUrl(e.target.value)}
-                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2.5 text-xs text-blue-400 font-mono focus:border-blue-500"
+                      className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2.5 text-xs text-blue-400 font-mono focus:border-blue-500"
                     />
                   </div>
 
@@ -631,7 +750,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       rows={3}
                       value={simulatedText}
                       onChange={(e) => setSimulatedText(e.target.value)}
-                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-blue-500 font-mono"
+                      className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-blue-500 font-mono"
                     />
                   </div>
 
@@ -655,7 +774,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                 </div>
               </div>
 
-              <div className="bg-[#0A0A0A] p-4 rounded-xl border border-white/5 space-y-1 text-xs">
+              <div className="bg-[#070D18] p-4 rounded-xl border border-slate-800/80 space-y-1 text-xs">
                 <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest block">Receiver Endpoint URL</span>
                 <span className="text-blue-400 font-mono block text-[11px] truncate">{extensionEndpoint}</span>
               </div>
@@ -671,8 +790,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Endpoint Documentation */}
-            <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-4 shadow-lg">
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-lg">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                   <Webhook className="w-4 h-4 text-emerald-400" />
                   <span>Inbound Webhooks & Lead Form API</span>
@@ -692,7 +811,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                   <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">
                     Your Live Webhook Endpoint URL
                   </label>
-                  <div className="flex items-center space-x-2 bg-[#0A0A0A] p-2.5 rounded-xl border border-white/10">
+                  <div className="flex items-center space-x-2 bg-[#070D18] p-2.5 rounded-xl border border-white/10">
                     <input
                       type="text"
                       readOnly
@@ -713,7 +832,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                   <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">
                     Sample cURL Request
                   </span>
-                  <pre className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 text-[10px] text-slate-300 font-mono overflow-x-auto">
+                  <pre className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 text-[10px] text-slate-300 font-mono overflow-x-auto">
 {`curl -X POST "${webhookEndpoint}" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -732,8 +851,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
             </div>
 
             {/* Interactive Webhook Tester Console */}
-            <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-4 shadow-lg">
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-4 shadow-lg">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                   <Terminal className="w-4 h-4 text-blue-400" />
                   <span>Interactive Webhook Tester Console</span>
@@ -751,7 +870,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       type="text"
                       value={testPayload.customerName}
                       onChange={(e) => setTestPayload({ ...testPayload, customerName: e.target.value })}
-                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2 text-xs text-white"
+                      className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2 text-xs text-white"
                     />
                   </div>
                   <div>
@@ -760,7 +879,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       type="text"
                       value={testPayload.phone}
                       onChange={(e) => setTestPayload({ ...testPayload, phone: e.target.value })}
-                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2 text-xs text-white font-mono"
+                      className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2 text-xs text-white font-mono"
                     />
                   </div>
                 </div>
@@ -772,7 +891,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       type="text"
                       value={testPayload.originCity}
                       onChange={(e) => setTestPayload({ ...testPayload, originCity: e.target.value })}
-                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2 text-xs text-white"
+                      className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2 text-xs text-white"
                     />
                   </div>
                   <div>
@@ -781,7 +900,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                       type="text"
                       value={testPayload.destinationCity}
                       onChange={(e) => setTestPayload({ ...testPayload, destinationCity: e.target.value })}
-                      className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2 text-xs text-white"
+                      className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2 text-xs text-white"
                     />
                   </div>
                 </div>
@@ -792,7 +911,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
                     rows={2}
                     value={testPayload.notes}
                     onChange={(e) => setTestPayload({ ...testPayload, notes: e.target.value })}
-                    className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl p-2 text-xs text-white"
+                    className="w-full bg-[#070D18] border border-white/10 rounded-xl p-2 text-xs text-white"
                   />
                 </div>
 
@@ -819,8 +938,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
           </div>
 
           {/* Webhook Activity Logs Table */}
-          <div className="bg-[#141414] border border-white/5 p-5 rounded-2xl space-y-3 shadow-lg">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+          <div className="bg-[#0C1322] border border-slate-800/80 p-5 rounded-2xl space-y-3 shadow-lg">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
                 <Code className="w-4 h-4 text-blue-400" />
                 <span>Live Webhook Activity Logs</span>
@@ -839,7 +958,7 @@ export const IntegrationsHubView: React.FC<IntegrationsHubProps> = ({
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {webhookLogs.map((log) => (
-                  <div key={log.id} className="bg-[#0A0A0A] p-3 rounded-xl border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-2">
+                  <div key={log.id} className="bg-[#070D18] p-3 rounded-xl border border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-2">
                     <div className="space-y-0.5">
                       <div className="flex items-center space-x-2">
                         <span className="font-bold text-white">{log.source}</span>
